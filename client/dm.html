@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>D&D Tool</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+	<link href="https://cdn.rawgit.com/dhg/Skeleton/gh-pages/dist/css/normalize.css" rel='stylesheet' type='text/css'/>
+	<link href="https://cdn.rawgit.com/dhg/Skeleton/gh-pages/dist/css/skeleton.css" rel='stylesheet' type='text/css'/>
+	<link href="/css/style.css" rel='stylesheet' type='text/css'/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="/js/sheet-parser.js"></script>
+</head>
+<body>
+	<div class="container" id="page">
+
+	<!-- Forms -->
+	<div class="header">
+		<div class="row">
+			<input value="Back" onclick="" class="button-primary button-big" type="button">
+			<input value="Settings" class="button-primary button-big u-pull-right" type="button">
+		</div>
+	</div>
+
+	<div class="content">
+		<div id="home">
+			<h4 id="title">Players</h4>
+			<div id="list-pcs"></div>
+			<div id="init-encounter"></div>'
+		</div>
+		<div id="encounter">
+			<h4>Battle: Not ready</h4>
+		</div>
+	</div>
+
+	<div class="bottom" style="margin-top: 4rem">
+		<div class="row">
+			<input value="Back" id="b-down-left" class="button-primary button-big u-footer" type="button">
+			<input value="Init Battle" id="b-down-right" class="button-primary button-big u-footer u-pull-right" type="button">
+		</div>
+	</div>
+
+	</div>
+
+	<div id="battle-pc">
+		<row class="row">
+
+		</row>
+	</div>
+
+	<div id="monster-input" class="hidden">
+		<div class="row">
+			<div class="four columns">
+	      <label for="monster-name">Name</label>
+	      <input class="u-full-width" type="text" id="monster-name"/>
+	    </div>
+			<div class="four columns">
+	      <label for="monster-health">Health</label>
+	      <input class="u-full-width" type="number" id="monster-health"/>
+	    </div>
+			<div class="four columns">
+	      <label for="monster-init">Initiative</label>
+	      <input class="u-full-width" type="number" id="monster-init"/>
+	    </div>
+		</div>
+		<div class="row">
+			<div class="six columns">
+				<input value="Cancel" onclick="cancelMonster()" step="1" class="button u-full-width" type="button"/>
+			</div>
+			<div class="six columns">
+				<input value="Confirm" onclick="confirmMonster()" step="1" class="button-primary u-full-width" type="submit"/>
+			</div>
+		</div>
+	</div>
+
+	<div id="pc-table" class="hidden">
+		<table class="u-full-width">
+		  <thead>
+		    <tr>
+		      <th>Name</th>
+		      <th>Class</th>
+		      <th>Health</th>
+		      <th>Dex</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		  </tbody>
+		</table>
+	</div>
+
+	<div id="npc-table" class="hidden">
+		<table class="u-full-width">
+		  <thead>
+		    <tr>
+		      <th>Name</th>
+		      <th>Health</th>
+		      <th>Initiative</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		  </tbody>
+		</table>
+	</div>
+
+	<script src="/js/dm.js"></script>
+</body>
+</html>

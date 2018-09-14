@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>D&D Tool</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+	<link href="https://cdn.rawgit.com/dhg/Skeleton/gh-pages/dist/css/normalize.css" rel='stylesheet' type='text/css'/>
+	<link href="https://cdn.rawgit.com/dhg/Skeleton/gh-pages/dist/css/skeleton.css" rel='stylesheet' type='text/css'/>
+	<link href="/css/style.css" rel='stylesheet' type='text/css'/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="/js/sheet-parser.js"></script>
+</head>
+<body>
+	<div class="container" id="page">
+
+	<!-- Forms -->
+	<div class="header">
+		<div class="row">
+			<input value="Back" onclick="" class="button-primary button-big" type="button">
+			<input value="Settings" class="button-primary button-big u-pull-right" type="button">
+		</div>
+	</div>
+
+	<div class="content">
+		<div class="row">
+			<h4><span id="name">Character</span><span id="class-info" class="u-pull-right">No class</span></h4>
+		</div>
+		<input type="file" id="fileSheet" onchange="uploadSheet()">
+		<p id="demo"></p>
+	</div>
+
+	<div class="footer">
+		<div class="row">
+			<input value="Back" class="button-primary button-big u-footer" type="button">
+			<input value="Settings" class="button-primary button-big u-footer u-pull-right" type="button">
+		</div>
+	</div>
+
+	</div>
+
+	<script src="/js/player.js"></script>
+</body>
+</html>

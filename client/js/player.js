@@ -62,3 +62,76 @@ socket.emit("load-sheet", {"id":name});
 socket.on("send-sheet", function(data) {
 	loadCharacterData(data);
 });
+
+
+
+socket.on("state-change", changeState)
+function changeState(data) {
+	changeScene(data);
+}
+function setState(state) {
+	socket.emit("set-state", state);
+}
+function loadState() {
+	socket.emit("load-state", {});
+}
+loadState();
+var scenes = {
+	home: {
+		dom: document.getElementById("home"),
+		f: function(){},
+		buttons: [undefined, undefined, undefined, undefined],
+		buttonNames: ["Home", "Settings", "", ""]
+	},
+	roll: {
+		dom: document.getElementById("roll"),
+		f: function(){},
+		buttons: [undefined, undefined, undefined, undefined],
+		buttonNames: ["Roll", "Settings", "", ""]
+	}
+}
+var currentScene = "home";
+function changeScene(sceneId) {
+	for (var id in scenes){
+		var scene = scenes[id];
+		scene.dom.classList.add("hidden");
+	}
+	var scene = scenes[sceneId];
+	scene.dom.classList.remove("hidden");
+	scene.f();
+	setButtons(scene);
+	currentScene = scene;
+}
+var buttons = [
+	document.getElementById("b-top-left"),
+	document.getElementById("b-top-right"),
+	document.getElementById("b-down-left"),
+	document.getElementById("b-down-right")
+]
+function setButtons(scene) {
+	for (var i = 0; i < buttons.length; i++) {
+		buttons[i] = clearButton(buttons[i]);
+		buttons[i].value = scene.buttonNames[i];
+		buttons[i].addEventListener("click", scene.buttons[i]);
+	}
+}
+function clearButton(button) {
+	var new_button = button.cloneNode(true);
+	button.parentNode.replaceChild(new_button, button);
+	return new_button;
+}
+
+
+$('#roll-form').submit(function () {
+ confirmRoll();
+ return false;
+});
+function confirmRoll() {
+	var initInput = document.getElementById("player-init");
+	var form = document.getElementById("roll-form");
+	var title = document.getElementById("roll-title");
+	var dom = document.getElementById("roll");
+
+	title.innerHTML = "Waiting...";
+	socket.emit("init-roll", initInput.value);
+}

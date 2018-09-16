@@ -29,7 +29,7 @@ fs.readFile(__dirname + '/shared/characters.json', 'utf8', function (err, data) 
 
 var players = {};
 var dms = {};
-
+var currentState = "home";
 io.sockets.on('connection', function(socket) {
 	console.log("Connection with id: "+socket.id);
 	players[socket.id] = socket;
@@ -39,6 +39,11 @@ io.sockets.on('connection', function(socket) {
 		delete players[socket.id];
 		dms[socket.id] = socket;
 		updatePCs();
+	});
+	socket.on("set-state", function(data){
+		console.log("Gamestate changed to " + data);
+		currentState = data;
+		io.emit("state-change", currentState);
 	});
 
 	/* Player */
@@ -59,8 +64,17 @@ io.sockets.on('connection', function(socket) {
 		}
 		updatePCs();
 	});
+	socket.on("init-roll", function(data) {
+		var name = players[socket.id]["name"];
+		console.log(name + " rolled " + data);
+		characters[name].initroll = data;
+		updatePCs();
+	});
 
 	/* Shared */
+	socket.on("load-state", function(data){
+		socket.emit("state-change", currentState);
+	});
 	socket.on("disconnect", function() {
 		//console.log("disconnect "+socket.id);
 		if (socket.id in players){

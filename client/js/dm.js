@@ -1,56 +1,151 @@
 var socket = io();
 
+class domTable {
+	constructor(list, table) {
+		this.list = document.getElementById(list);
+		this.list.innerHTML = "";
+		this.table = document.getElementById(table).children[0].cloneNode(true);
+		this.tbody = this.table.children[1];
+	}
+
+	addRow(items) {
+		var row = document.createElement("tr");
+		for (var k in items) {
+			var item = items[k];
+			var td = document.createElement("td");
+			td.innerHTML = item;
+			row.appendChild(td);
+		}
+		this.tbody.appendChild(row);
+	}
+
+	create() {
+		this.list.innerHTML = "";
+		this.list.appendChild(this.table);
+	}
+}
+
+socket.on("state-change", changeState)
+function changeState(data) {
+	changeScene(data);
+}
+function setState(state) {
+	socket.emit("set-state", state);
+}
+function loadState() {
+	socket.emit("load-state", {});
+}
+loadState();
+var scenes = {
+	home: {
+		dom: document.getElementById("home"),
+		f: startHome,
+		buttons: [undefined, undefined, cancelInitEncounter, startInitEncounter],
+		buttonNames: ["Home", "Settings", "Cancel", "Init Battle"]
+	},
+	roll: {
+		dom: document.getElementById("roll"),
+		f: startRoll,
+		buttons: [undefined, undefined, cancelRoll, function(){setState("encounter")}],
+		buttonNames: ["Roll", "Settings", "Cancel", "Start Encounter"]
+	},
+	encounter: {
+		dom: document.getElementById("encounter"),
+		f: startEncounter,
+		buttons: [cancelEncounter, undefined, undefined, endTurn],
+		buttonNames: ["End Encounter", "Settings", "", "End Turn"]
+	}
+}
+var currentScene = "home";
+function changeScene(sceneId) {
+	for (var id in scenes){
+		var scene = scenes[id];
+		scene.dom.classList.add("hidden");
+	}
+	var scene = scenes[sceneId];
+	scene.dom.classList.remove("hidden");
+	scene.f();
+	setButtons(scene);
+	currentScene = scene;
+}
+var buttons = [
+	document.getElementById("b-top-left"),
+	document.getElementById("b-top-right"),
+	document.getElementById("b-down-left"),
+	document.getElementById("b-down-right")
+]
+function setButtons(scene) {
+	for (var i = 0; i < buttons.length; i++) {
+		buttons[i] = clearButton(buttons[i]);
+		buttons[i].value = scene.buttonNames[i];
+		buttons[i].addEventListener("click", scene.buttons[i]);
+	}
+}
+function clearButton(button) {
+	var new_button = button.cloneNode(true);
+	button.parentNode.replaceChild(new_button, button);
+	return new_button;
+}
+
 var pcs = {};
-var pcList = document.getElementById("list-pcs");
+var bcs = {};
 socket.emit("login-dm", {});
 socket.on("send-pcs", function(data) {
 	pcs = data;
-	pcList.innerHTML = "";
-	var table = document.getElementById("pc-table").children[0].cloneNode(true);
-	var tbody = table.children[1];
 	for (var id in pcs) {
 		var pc = pcs[id];
-		var row = document.createElement("tr");
-		var name = document.createElement("td");
-		name.innerHTML = pc["noteList"]["name"];
-		row.appendChild(name);
-		var c = document.createElement("td");
-		c.innerHTML = pc["noteList"]["class"];
-		row.appendChild(c);
-		var health = document.createElement("td");
-		health.innerHTML = pc["maxHealth"];
-		row.appendChild(health);
-		var dex = document.createElement("td");
-		dex.innerHTML = pc["maxDex"];
-		row.appendChild(dex);
-
-		tbody.appendChild(row);
+		if (pc.initroll != undefined) {
+			pc.type = "Player";
+			bcs[id] = pc;
+		}
 	}
-	pcList.appendChild(table);
+	updatePCs();
+	updateBCs();
 });
+
+function updatePCs() {
+	var table = new domTable("list-pcs", "pc-table");
+	for (var id in pcs) {
+		var pc = pcs[id];
+		var name = pc["noteList"]["name"];
+		var c = pc["noteList"]["class"];
+		var health = pc["maxHealth"];
+		var dex = pc["maxDex"];
+		table.addRow({name, c, health, dex});
+	}
+	table.create();
+}
 
 var npcs = {};
 function updateMonsters() {
-	var npcList = document.getElementById("list-npcs");
-	npcList.innerHTML = "";
-	var table = document.getElementById("npc-table").children[0].cloneNode(true);
-	var tbody = table.children[1];
+	var table = new domTable("list-npcs", "npc-table");
 	for (var id in npcs) {
 		var npc = npcs[id];
-		var row = document.createElement("tr");
-		var name = document.createElement("td");
-		name.innerHTML = npc.name;
-		row.appendChild(name);
-		var health = document.createElement("td");
-		health.innerHTML = npc.health;
-		row.appendChild(health);
-		var init = document.createElement("td");
-		init.innerHTML = npc.init;
-		row.appendChild(init);
-
-		tbody.appendChild(row);
+		var name = npc.name;
+		var health = npc.health;
+		var dex  = npc.dex;
+		table.addRow({name, health, dex});
 	}
-	npcList.appendChild(table);
+	table.create();
+}
+
+function updateBCs() {
+	var table = new domTable("list-bcs", "bc-table");
+	for (var id in bcs) {
+		var ent = bcs[id];
+		var type = ent.type;
+		var roll = ent.initroll;
+		var name,dex;
+		if (type == "Player") {
+			name = ent["noteList"]["name"];
+			dex = ent["maxDex"];
+		} else {
+			name = ent.name;
+			dex = ent.dex;
+		}
+		table.addRow({name, type, roll, dex});
+	}
+	table.create();
 }
 
 function addMonster(data) {
@@ -63,10 +158,10 @@ function confirmMonster() {
 	var fields = form.childNodes[0];
 	var name = fields.querySelector("#monster-name").value;
 	var health = fields.querySelector("#monster-health").value;
-	var init = fields.querySelector("#monster-init").value;
+	var dex = fields.querySelector("#monster-dex").value;
 	cancelMonster()
 	if (name == "") return;
-	addMonster({name: name, health: health, init: init});
+	addMonster({name: name, health: health, dex: dex});
 }
 
 function cancelMonster() {
@@ -76,18 +171,22 @@ function cancelMonster() {
 	buttonDiv.classList.remove("hidden");
 }
 
-var buttondr = document.getElementById("b-down-right");
-var buttondl = document.getElementById("b-down-left");
-function initEncounter() {
+
+function startInitEncounter() {
+	npcs = {};
 	var x = document.getElementById("init-encounter");
+	x.innerHTML = "";
 	var monsterInput = document.getElementById("monster-input").innerHTML;
 
-	buttondr.value = "Start Battle";
-	buttondr.removeEventListener("click", initEncounter);
-	buttondr.addEventListener("click", startEncounter);
+	buttons[3].value = "Start Rolls";
+	buttons[3] = clearButton(buttons[3]);
+	buttons[3].addEventListener("click", function(){
+		setState("roll");
+	});
 
-	buttondl.value = "Cancel";
-	buttondl.addEventListener("click", cancelEncounter);
+	buttons[2].value = "Cancel";
+	buttons[2] = clearButton(buttons[2]);
+	buttons[2].addEventListener("click", cancelInitEncounter);
 
 	var monsterTitle = document.createElement("h4");
 	monsterTitle.innerHTML = "Monsters";
@@ -115,17 +214,55 @@ function initEncounter() {
 	x.appendChild(buttonDiv);
 
 }
-buttondr.addEventListener("click", initEncounter);
+buttons[3].addEventListener("click", startInitEncounter);
 
-function cancelEncounter() {
-	var x = document.getElementById("init-encounter");
-	buttondr.value = "Init Battle";
-	buttondr.removeEventListener("click", startEncounter);
-	buttondr.addEventListener("click", initEncounter);
+function cancelInitEncounter() {
+	changeScene("home");
+}
+
+function startHome() {
 	npcs = {};
+	var x = document.getElementById("init-encounter");
 	x.innerHTML = "";
 }
 
-function startEncounter() {
+function cancelRoll() {
+	bcs = {};
+	updateBCs();
+	setState("home");
+}
 
+function startRoll() {
+	bcs = {};
+	var dom = document.getElementById("roll");
+	var forms = document.getElementById("monster-rolls");
+	var title = document.getElementById("roll-title");
+	title.innerHTML = "Rolling Initiative";
+	var initform = document.getElementById("monster-initroll");
+	for (var id in npcs) {(function() {
+		var npc = npcs[id];
+		var form = initform.children[0].cloneNode(true);
+		var label = form.querySelector("#npc-id");
+		label.innerHTML = npc.name;
+
+		var roll = form.children[0].children[0].children[1];
+
+		var button = form.children[0].children[1].children[1];
+		button.addEventListener("click", function() {
+			forms.removeChild(form);
+			bcs[npc.name] = {name: npc.name, type: "Monster", health: npc.health, dex: npc.dex, initroll: roll.value};
+			updateBCs();
+			return false;
+		});
+
+		forms.appendChild(form);
+	}());}
+}
+
+function cancelEncounter() {
+	setState("home");
+}
+
+function startEncounter() {
+	
 }

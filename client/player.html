@@ -20,23 +20,40 @@
 	<!-- Forms -->
 	<div class="header">
 		<div class="row">
-			<input value="Back" onclick="" class="button-primary button-big" type="button">
-			<input value="Settings" class="button-primary button-big u-pull-right" type="button">
+			<input value="Back" id="b-top-left" class="button-primary button-big" type="button">
+			<input value="Settings" id="b-top-right" class="button-primary button-big u-pull-right" type="button">
 		</div>
 	</div>
 
 	<div class="content">
-		<div class="row">
-			<h4><span id="name">Character</span><span id="class-info" class="u-pull-right">No class</span></h4>
+		<div id="home">
+			<div class="row">
+				<h4><span id="name">Character</span><span id="class-info" class="u-pull-right">No class</span></h4>
+			</div>
+			<input type="file" id="fileSheet" onchange="uploadSheet()">
+			<p id="demo"></p>
 		</div>
-		<input type="file" id="fileSheet" onchange="uploadSheet()">
-		<p id="demo"></p>
+		<div id="roll" class="hidden">
+			<h4 id="roll-title">Rolling Initiative</h4>
+			<form id="roll-form">
+				<div class="row">
+					<div class="eight columns">
+			      <label for="player-init">Enter your roll:</label>
+			      <input class="u-full-width" type="number" min="1" max="20" id="player-init"/>
+			    </div>
+					<div class="four columns">
+						<label for="confirm-player-init">&nbsp;</label>
+						<input value="Confirm" id="confirm-player-init" class="button-primary u-full-width" type="submit"/>
+					</div>
+				</div>
+			</form>
+		</div>
 	</div>
 
 	<div class="footer">
 		<div class="row">
-			<input value="Back" class="button-primary button-big u-footer" type="button">
-			<input value="Settings" class="button-primary button-big u-footer u-pull-right" type="button">
+			<input value="Cancel" id="b-down-left" class="button-primary button-big u-footer" type="button">
+			<input value="Confirm" id="b-down-right" class="button-primary button-big u-footer u-pull-right" type="button">
 		</div>
 	</div>
 

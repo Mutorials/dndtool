@@ -52,7 +52,7 @@ var scenes = {
 	encounter: {
 		dom: document.getElementById("encounter"),
 		f: startEncounter,
-		buttons: [cancelEncounter, undefined, undefined, endTurn],
+		buttons: [cancelEncounter, undefined, undefined, undefined],
 		buttonNames: ["End Encounter", "Settings", "", "End Turn"]
 	}
 }
@@ -110,7 +110,7 @@ function updatePCs() {
 		var name = pc["noteList"]["name"];
 		var c = pc["noteList"]["class"];
 		var health = pc["maxHealth"];
-		var dex = pc["maxDex"];
+		var dex = pc.abilityScores["dex-score"];
 		table.addRow({name, c, health, dex});
 	}
 	table.create();
@@ -138,7 +138,7 @@ function updateBCs() {
 		var name,dex;
 		if (type == "Player") {
 			name = ent["noteList"]["name"];
-			dex = ent["maxDex"];
+			dex = ent.abilityScores["dex-score"];
 		} else {
 			name = ent.name;
 			dex = ent.dex;
@@ -264,5 +264,5 @@ function cancelEncounter() {
 }
 
 function startEncounter() {
-	
+
 }

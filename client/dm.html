@@ -11,6 +11,7 @@
 	<link href="/css/style.css" rel='stylesheet' type='text/css'/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/dist/FileSaver.min.js"></script>
 	<script src="/js/sheet-parser.js"></script>
 </head>
 <body>
@@ -45,6 +46,23 @@
 		</div>
 	</div>
 
+	</div>
+
+	<div id="encounterIO" class="hidden">
+		<div class="row">
+			<div class="three columns">
+				<input class="u-full-width" type="text" id="encounterName" placeholder="Encounter name">
+			</div>
+			<div class="three columns">
+				<input class="u-full-width" type="button" value="Save" onclick="saveEncounter()">
+			</div>
+			<div class="three columns">
+				<input class="u-full-width" type="file" id="fileEncounter">
+			</div>
+			<div class="three columns">
+				<input class="u-full-width" type="button" value="Upload" onclick="uploadEncounter()">
+			</div>
+		</div>
 	</div>
 
 	<div id="monster-input" class="hidden">

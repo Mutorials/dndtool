@@ -159,7 +159,7 @@ function confirmMonster() {
 	var name = fields.querySelector("#monster-name").value;
 	var health = fields.querySelector("#monster-health").value;
 	var dex = fields.querySelector("#monster-dex").value;
-	cancelMonster()
+	cancelMonster();
 	if (name == "") return;
 	addMonster({name: name, health: health, dex: dex});
 }
@@ -171,12 +171,42 @@ function cancelMonster() {
 	buttonDiv.classList.remove("hidden");
 }
 
+function loadEncounterData(data) {
+	for (var id in data) {
+		var npc = data[id];
+		addMonster(npc);
+	}
+}
+
+function uploadEncounter(){
+	read = new FileReader();
+
+	var x = document.getElementById("fileEncounter");
+	for (var id in x.files) {
+		var file = x.files[id];
+		if (!(file instanceof Blob)) continue;
+		console.log(file);
+		read.onloadend = function() {
+			var res = JSON.parse(read.result);
+			loadEncounterData(res);
+		}
+		read.readAsText(file);
+	}
+}
+
+function saveEncounter() {
+  var text = JSON.stringify(npcs);
+  var filename = $("#encounterName").val()
+  var blob = new Blob([text], {type: "application/json"});
+  saveAs(blob, filename+".json");
+}
 
 function startInitEncounter() {
 	npcs = {};
 	var x = document.getElementById("init-encounter");
 	x.innerHTML = "";
 	var monsterInput = document.getElementById("monster-input").innerHTML;
+	var encounterIO = document.getElementById("encounterIO").innerHTML;
 
 	buttons[3].value = "Start Rolls";
 	buttons[3] = clearButton(buttons[3]);
@@ -191,6 +221,11 @@ function startInitEncounter() {
 	var monsterTitle = document.createElement("h4");
 	monsterTitle.innerHTML = "Monsters";
 	x.appendChild(monsterTitle);
+	
+	var encDiv = document.createElement("div");
+	encDiv.id = "encounterDiv";
+	encDiv.innerHTML = encounterIO;
+	x.appendChild(encDiv);
 
 	var npcList = document.createElement("div");
 	npcList.id = "list-npcs";
@@ -234,6 +269,7 @@ function cancelRoll() {
 
 function startRoll() {
 	bcs = {};
+	updateBCs();
 	var dom = document.getElementById("roll");
 	var forms = document.getElementById("monster-rolls");
 	var title = document.getElementById("roll-title");

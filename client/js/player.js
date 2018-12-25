@@ -19,30 +19,46 @@ function uploadSheet(){
 
 }
 
-function loadCharacterData(res) {
-	character = res;
+function confirmPlayer() {
+	var form = document.getElementById("player-form");
+	var fields = form.childNodes[0];
+	var pname = document.getElementById("player-name").value;
+	var pclass = document.getElementById("player-class").value;
+	var health = document.getElementById("player-health").value;
+	var dex = document.getElementById("player-dex").value;
+	if (name == "") return;
+	var data = {};
+	data.noteList = {};
+	data.noteList.name = pname;
+	data.noteList.class = pclass;
+	data.maxHealth = health;
+	data.maxDex = dex;
+	loadCharacterData(data);
+	var res = {"id":name, "sheet":data};
+	socket.emit("save-sheet", res);
+	changeScene("home");
+}
+
+function loadCharacterData(data) {
+	character = data;
 	loadCharacter(
-		res["noteList"]["name"],
-		res["noteList"]["class"],
-		res["improvedInitiative"],
-		res["baseSpeed"],
-		res["armorBonus"]
+		data.noteList.name,
+		data.noteList.class,
+		data.maxHealth,
+		data.maxDex
 	);
 }
 
-function loadCharacter(n, c, i, s, a){
+function loadCharacter(n, c, h, d){
 	document.getElementById("name").innerHTML = n;
 	document.getElementById("class-info").innerHTML = c;
 
-	var txt = "Initiative: " + i + "<br/>";
-	txt += "Speed: " + s + "<br/>";
-	txt += "Armor Class: " + a + "<br/>";
+	var txt = "Max health: " + h + "<br/>";
+	txt    += "Dexterity:  " + d + "<br/>";
 	document.getElementById("demo").innerHTML = txt;
 
-	var x = document.getElementById("fileSheet");
-	if (x != undefined) {
-		x.parentNode.removeChild(x);
-	}
+	var x = document.getElementById("playerInput");
+	x.classList.add("hidden");
 }
 
 function getParameterByName(name, url) {
@@ -63,6 +79,16 @@ socket.on("send-sheet", function(data) {
 	loadCharacterData(data);
 });
 
+function showImport() {
+	var x = document.getElementById("playerInput");
+	buttons[1] = clearButton(buttons[1]);
+	buttons[1].value = "Cancel import";
+	buttons[1].addEventListener("click", function() {
+		x.classList.add("hidden");
+		changeScene("home");
+	});
+	x.classList.remove("hidden");
+}
 
 
 socket.on("state-change", changeState)
@@ -80,14 +106,14 @@ var scenes = {
 	home: {
 		dom: document.getElementById("home"),
 		f: function(){},
-		buttons: [undefined, undefined, undefined, undefined],
-		buttonNames: ["Home", "Settings", "", ""]
+		buttons: [undefined, showImport, undefined, undefined],
+		buttonNames: ["Home", "Import", "", ""]
 	},
 	roll: {
 		dom: document.getElementById("roll"),
 		f: function(){},
 		buttons: [undefined, undefined, undefined, undefined],
-		buttonNames: ["Roll", "Settings", "", ""]
+		buttonNames: ["Roll", "", "", ""]
 	}
 }
 var currentScene = "home";
@@ -132,6 +158,6 @@ function confirmRoll() {
 	var title = document.getElementById("roll-title");
 	var dom = document.getElementById("roll");
 
-	title.innerHTML = "Waiting...";
+	title.innerHTML = "Rolled " + initInput.value + ": Waiting...";
 	socket.emit("init-roll", initInput.value);
 }

@@ -110,7 +110,7 @@ function updatePCs() {
 		var name = pc["noteList"]["name"];
 		var c = pc["noteList"]["class"];
 		var health = pc["maxHealth"];
-		var dex = pc.abilityScores["dex-score"];
+		var dex = pc["maxDex"];
 		table.addRow({name, c, health, dex});
 	}
 	table.create();
@@ -221,7 +221,7 @@ function startInitEncounter() {
 	var monsterTitle = document.createElement("h4");
 	monsterTitle.innerHTML = "Monsters";
 	x.appendChild(monsterTitle);
-	
+
 	var encDiv = document.createElement("div");
 	encDiv.id = "encounterDiv";
 	encDiv.innerHTML = encounterIO;

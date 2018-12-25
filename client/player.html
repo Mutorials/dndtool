@@ -30,7 +30,45 @@
 			<div class="row">
 				<h4><span id="name">Character</span><span id="class-info" class="u-pull-right">No class</span></h4>
 			</div>
-			<input type="file" id="fileSheet" onchange="uploadSheet()">
+			<div id="playerInput" class="">
+				<h5>Manual sheet</h5>
+				<form id="player-form">
+					<div id="form-container">
+						<div class="row">
+							<div class="three columns">
+					      <label for="player-name">Name</label>
+					      <input class="u-full-width" type="text" id="player-name"/>
+					    </div>
+							<div class="three columns">
+					      <label for="player-class">Class</label>
+					      <input class="u-full-width" type="text" id="player-class"/>
+					    </div>
+							<div class="three columns">
+					      <label for="player-health">Health</label>
+					      <input class="u-full-width" type="number" id="player-health"/>
+					    </div>
+							<div class="three columns">
+					      <label for="player-dex">Dexterity</label>
+					      <input class="u-full-width" type="number" id="player-dex"/>
+					    </div>
+						</div>
+					</div>
+				</form>
+				<div class="row">
+					<div class="twelve columns">
+						<input value="Confirm" onclick="confirmPlayer()" step="1" class="button-primary u-full-width" type="submit"/>
+					</div>
+				</div><br/>
+				<h5>Sheet import</h5>
+				<div class="row">
+					<div class="six columns">
+						<input type="file" id="fileSheet">
+					</div>
+					<div class="six columns">
+						<input value="Upload" onclick="uploadSheet()" step="1" class="button-primary u-full-width" type="submit"/>
+					</div>
+				</div>
+			</div>
 			<p id="demo"></p>
 		</div>
 		<div id="roll" class="hidden">
@@ -58,6 +96,8 @@
 	</div>
 
 	</div>
+
+
 
 	<script src="/js/player.js"></script>
 </body>

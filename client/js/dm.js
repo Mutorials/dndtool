@@ -13,12 +13,16 @@ class domTable {
 		for (var k in items) {
 			var item = items[k];
 			var td = document.createElement("td");
-			td.innerHTML = item;
+			if (item instanceof HTMLElement) {
+				td.appendChild(item);
+			} else {
+				td.innerHTML = item;
+			}
 			row.appendChild(td);
 		}
 		this.tbody.appendChild(row);
 	}
-
+//WOW das echt superdeluxe dynamixx af boooiii
 	create() {
 		this.list.innerHTML = "";
 		this.list.appendChild(this.table);
@@ -46,13 +50,13 @@ var scenes = {
 	roll: {
 		dom: document.getElementById("roll"),
 		f: startRoll,
-		buttons: [undefined, undefined, cancelRoll, function(){setState("encounter")}],
+		buttons: [rollAll, undefined, cancelRoll, function(){setState("encounter")}],
 		buttonNames: ["Roll", "Settings", "Cancel", "Start Encounter"]
 	},
 	encounter: {
 		dom: document.getElementById("encounter"),
 		f: startEncounter,
-		buttons: [cancelEncounter, undefined, undefined, undefined],
+		buttons: [cancelEncounter, undefined, undefined, updateTurn],
 		buttonNames: ["End Encounter", "Settings", "", "End Turn"]
 	}
 }
@@ -66,7 +70,7 @@ function changeScene(sceneId) {
 	scene.dom.classList.remove("hidden");
 	scene.f();
 	setButtons(scene);
-	currentScene = scene;
+	currentScene = sceneId;
 }
 var buttons = [
 	document.getElementById("b-top-left"),
@@ -88,7 +92,6 @@ function clearButton(button) {
 }
 
 var pcs = {};
-var bcs = {};
 socket.emit("login-dm", {});
 socket.on("send-pcs", function(data) {
 	pcs = data;
@@ -116,33 +119,34 @@ function updatePCs() {
 	table.create();
 }
 
-var npcs = {};
 function updateMonsters() {
 	var table = new domTable("list-npcs", "npc-table");
 	for (var id in npcs) {
 		var npc = npcs[id];
 		var name = npc.name;
 		var health = npc.health;
-		var dex  = npc.dex;
+		var dex  = npc.maxDex;
 		table.addRow({name, health, dex});
 	}
 	table.create();
 }
 
+var bcs = {};
+var npcs = {};
 function updateBCs() {
 	var table = new domTable("list-bcs", "bc-table");
 	for (var id in bcs) {
 		var ent = bcs[id];
 		var type = ent.type;
 		var roll = ent.initroll;
-		var name,dex;
+		var dex = ent.maxDex;
+		var name;
 		if (type == "Player") {
 			name = ent["noteList"]["name"];
-			dex = ent.abilityScores["dex-score"];
 		} else {
 			name = ent.name;
-			dex = ent.dex;
 		}
+		if (roll !== undefined) bcs[id].init = Math.floor((dex-10)/2) + roll;
 		table.addRow({name, type, roll, dex});
 	}
 	table.create();
@@ -161,7 +165,7 @@ function confirmMonster() {
 	var dex = fields.querySelector("#monster-dex").value;
 	cancelMonster();
 	if (name == "") return;
-	addMonster({name: name, health: health, dex: dex});
+	addMonster({name: name, health: health, maxDex: dex});
 }
 
 function cancelMonster() {
@@ -171,9 +175,26 @@ function cancelMonster() {
 	buttonDiv.classList.remove("hidden");
 }
 
+function matchNpcName(npc) {
+	if (npcs[npc.name] != undefined) {
+		var matches = npc.name.match(/\d+$/);
+		var n = 1;
+		if (matches) {
+			n = parseInt(matches[0], 10) + 1;
+			console.log(n);
+			var l = matches[0].toString().length;
+			npc.name = npc.name.slice(0,-(l+1));
+		}
+		npc.name += " " + n;
+		npc.name = matchNpcName(npc);
+	}
+	return npc.name;
+}
+
 function loadEncounterData(data) {
 	for (var id in data) {
 		var npc = data[id];
+		npc.name = matchNpcName(npc);
 		addMonster(npc);
 	}
 }
@@ -185,7 +206,6 @@ function uploadEncounter(){
 	for (var id in x.files) {
 		var file = x.files[id];
 		if (!(file instanceof Blob)) continue;
-		console.log(file);
 		read.onloadend = function() {
 			var res = JSON.parse(read.result);
 			loadEncounterData(res);
@@ -267,6 +287,19 @@ function cancelRoll() {
 	setState("home");
 }
 
+function rollAll() {
+	var forms = document.getElementById("monster-rolls");
+	forms.innerHTML = "";
+
+	for (var id in npcs) {(function() {
+		var npc = npcs[id];
+		var r = Math.floor(Math.random() * 20) + 1;
+		bcs[npc.name] = {name: npc.name, type: "Monster", health: npc.health, maxDex: npc.maxDex, initroll: r};
+		updateBCs();
+		return false;
+	}());}
+}
+
 function startRoll() {
 	bcs = {};
 	updateBCs();
@@ -286,7 +319,7 @@ function startRoll() {
 		var button = form.children[0].children[1].children[1];
 		button.addEventListener("click", function() {
 			forms.removeChild(form);
-			bcs[npc.name] = {name: npc.name, type: "Monster", health: npc.health, dex: npc.dex, initroll: roll.value};
+			bcs[npc.name] = {name: npc.name, type: "Monster", health: npc.health, maxDex: npc.maxDex, initroll: roll.value};
 			updateBCs();
 			return false;
 		});
@@ -299,6 +332,60 @@ function cancelEncounter() {
 	setState("home");
 }
 
-function startEncounter() {
+function updateEncounter() {
+	var table = new domTable("list-enc", "enc-table");
 
+	var ents = Object.keys(bcs).map(function(key) {
+	  return [key, bcs[key]];
+	});
+	ents.sort(function(a, b) {
+	  return (b[1].init - a[1].init) || (b[1].maxDex - a[1].maxDex);
+	});
+
+	for (var id in ents) {
+		var ent = ents[id][1];
+		var tracker = '<div id="ent-'+id+'"></div>'
+		var type = ent.type;
+		var init = ent.init;
+		var name,heatlh;
+		if (type == "Player") {
+			name = ent.noteList.name;
+			health = ent.maxHealth;
+		} else {
+			name = ent.name;
+			health = document.createElement("input");
+			health.type = "number";
+			if (health.value == "") health.value = ent.health;
+			health.step = 1;
+			health.min = 0;
+			health.max = ent.health;
+			health.addEventListener("onchange", function() {
+				ents[id][1].health = health.value;
+			}());
+		}
+		table.addRow({tracker, name, type, health, init});
+	}
+	table.create();
+}
+
+var turnId = -1;
+function updateTurn() {
+	var l;
+	if (bcs.length === undefined) l = Object.keys(bcs).length;
+	else l = bcs.length;
+	if (l <= 0) return;
+	if (turnId >= 0) {
+		var h = document.getElementById("ent-"+turnId);
+		h.innerHTML = "";
+	}
+	turnId = (turnId+1+l)%l;
+	console.log(turnId);
+	var h = document.getElementById("ent-"+turnId);
+	h.innerHTML = ">>";
+}
+
+function startEncounter() {
+	updateEncounter();
+	turnId = -1;
+	updateTurn();
 }

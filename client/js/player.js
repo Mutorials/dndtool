@@ -2,6 +2,7 @@ var socket = io();
 
 var character;
 function uploadSheet(){
+	vibr();
 	read = new FileReader();
 	parser = new DOMParser();
 
@@ -74,18 +75,48 @@ function getParameterByName(name, url) {
 var name = getParameterByName("name");
 document.getElementById("name").innerHTML = name;
 
+var togglevib = function() {
+	dovib = !dovib;
+	vibr();
+	updatevb();
+}
+var updatevb = function() {
+	console.log(dovib, getDoVib());
+	// Needs === true for some strange reason
+	if (dovib === true) {
+		buttons[0].value = "Vibrate on ";
+	} else {
+		buttons[0].value = "Vibrate off";
+	}
+	localStorage.setItem("doVib", dovib);
+}
+var vibr = function(){
+	if (dovib) {
+		navigator.vibrate(vibamt);
+	}
+}
+var getDoVib = function() {
+	var lsVib = localStorage.getItem("doVib");
+	return (lsVib === undefined) ? false : (lsVib === "true");
+}
+var vibamt = 10;
+var dovib = getDoVib();
+
 socket.emit("load-sheet", {"id":name});
 socket.on("send-sheet", function(data) {
 	loadCharacterData(data);
 });
 
+var currentScene = "home";
 function showImport() {
+	vibr();
 	var x = document.getElementById("playerInput");
 	buttons[1] = clearButton(buttons[1]);
 	buttons[1].value = "Cancel import";
 	buttons[1].addEventListener("click", function() {
 		x.classList.add("hidden");
-		changeScene("home");
+		console.log(currentScene);
+		changeScene(currentScene);
 	});
 	x.classList.remove("hidden");
 }
@@ -105,28 +136,38 @@ loadState();
 var scenes = {
 	home: {
 		dom: document.getElementById("home"),
-		f: function(){},
-		buttons: [undefined, showImport, undefined, undefined],
-		buttonNames: ["Home", "Import", "", ""]
+		f: updatevb,
+		buttons: [//function(){
+			//navigator.vibrate([30,10,10,10,30,10,30,30,30,10,30,10,30,30,10,10,10,10,30,30,10,10,30,10,30,10,30,10,30,10,10,30,10,10,30,10,10,30,10,70,30,10,10,30,10,30,30,10,10,10,10,10,30,30,30]);
+			//navigator.vibrate([30,10,10,10,30,10,30,30,30,10,30,10,30,30,10,10,10,10,30,30,10,10,30,10,10,70,30,30,10,10,10,10,30,30,10,10,30,10,10,30,30,10,10,30,30,10,10,10,30,10,10,10,30,10,30]);
+		//},
+		togglevib, showImport, undefined, undefined],
+		buttonNames: ["", "Import", "", ""]
 	},
 	roll: {
 		dom: document.getElementById("roll"),
-		f: function(){},
+		f: updatevb,
+		buttons: [togglevib, undefined, undefined, undefined],
+		buttonNames: ["", "", "", ""]
+	},
+	encounter: {
+		dom: document.getElementById("encounter"),
+		f: updatevb,
 		buttons: [undefined, undefined, undefined, undefined],
-		buttonNames: ["Roll", "", "", ""]
+		buttonNames: ["", "", "", "End Turn"]
 	}
 }
-var currentScene = "home";
 function changeScene(sceneId) {
+	vibr();
 	for (var id in scenes){
 		var scene = scenes[id];
 		scene.dom.classList.add("hidden");
 	}
 	var scene = scenes[sceneId];
 	scene.dom.classList.remove("hidden");
-	scene.f();
 	setButtons(scene);
-	currentScene = scene;
+	scene.f();
+	currentScene = sceneId;
 }
 var buttons = [
 	document.getElementById("b-top-left"),
